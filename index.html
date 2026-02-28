@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>h2Radnor Insights</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --green-dark: #213629;
+  --green-mid: #2a4535;
+  --navy: #1a2930;
+  --white: #ffffff;
+  --gray-bg: #f4f4f4;
+  --gray-light: #e8e8e8;
+  --gray-text: #767676;
+  --gray-dark: #212121;
+  --blue-accent: #1863DC;
+  --red-accent: #c0392b;
+  --orange-accent: #e67e22;
+  --yellow-accent: #f1c40f;
+  --green-accent: #27ae60;
+}
+
+html, body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background: var(--white);
+  color: var(--gray-dark);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== SPLASH SCREEN ===== */
+#splash {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+#splash.hidden {
+  opacity: 0;
+  transform: scale(1.05);
+  pointer-events: none;
+}
+
+.splash-bg {
+  position: absolute;
+  inset: 0;
+  background: url('splash.jpeg') center center / cover no-repeat;
+}
+
+.splash-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(33,54,41,0.7) 0%, rgba(26,41,48,0.85) 100%);
+}
+
+.splash-content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  animation: fadeInUp 1s ease;
+}
+
+.splash-logo {
+  width: 220px;
+  max-width: 60vw;
+  margin-bottom: 32px;
+  filter: brightness(0) invert(1);
+}
+
+.splash-tagline {
+  color: rgba(255,255,255,0.8);
+  font-size: 14px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 48px;
+}
+
+.splash-enter {
+  color: rgba(255,255,255,0.5);
+  font-size: 13px;
+  letter-spacing: 1px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+/* ===== FEED SCREEN ===== */
+#feed {
+  display: none;
+  min-height: 100vh;
+  background: var(--gray-bg);
+}
+
+#feed.active { display: block; }
+
+.feed-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--white);
+  border-bottom: 1px solid var(--gray-light);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+.feed-logo {
+  height: 28px;
+}
+
+.feed-header-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--green-dark);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.feed-date {
+  font-size: 12px;
+  color: var(--gray-text);
+  padding: 12px 20px 4px;
+}
+
+.feed-list {
+  padding: 8px 16px 24px;
+}
+
+.feed-card {
+  background: var(--white);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.feed-card:active {
+  transform: scale(0.98);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.feed-card-rank {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--white);
+}
+
+.rank-critical { background: var(--red-accent); }
+.rank-high { background: var(--orange-accent); }
+.rank-medium { background: var(--yellow-accent); color: var(--gray-dark); }
+.rank-standard { background: var(--green-accent); }
+
+.feed-card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.feed-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.feed-card-tag {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(33,54,41,0.08);
+  color: var(--green-dark);
+}
+
+.feed-card-time {
+  font-size: 11px;
+  color: var(--gray-text);
+}
+
+.feed-card-title {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--gray-dark);
+  margin-bottom: 6px;
+}
+
+.feed-card-desc {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--gray-text);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.feed-card-footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.feed-card-listen {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--blue-accent);
+  background: rgba(24,99,220,0.08);
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: none;
+  cursor: pointer;
+}
+
+.feed-card-listen svg {
+  width: 14px;
+  height: 14px;
+  fill: var(--blue-accent);
+}
+
+.feed-card-arrow {
+  margin-left: auto;
+  color: var(--gray-light);
+  font-size: 18px;
+}
+
+/* ===== DETAIL SCREEN ===== */
+#detail {
+  display: none;
+  min-height: 100vh;
+  background: var(--white);
+}
+
+#detail.active { display: block; }
+
+.detail-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--white);
+  border-bottom: 1px solid var(--gray-light);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+.detail-back {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: var(--green-dark);
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+}
+
+.detail-header-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--green-dark);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Audio player bar */
+.audio-bar {
+  background: var(--green-dark);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--white);
+}
+
+.audio-bar.hidden { display: none; }
+
+.audio-play-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--white);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.audio-play-btn svg {
+  width: 16px;
+  height: 16px;
+  fill: var(--green-dark);
+}
+
+.audio-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.audio-label {
+  font-size: 11px;
+  opacity: 0.7;
+  margin-bottom: 4px;
+}
+
+.audio-progress-wrap {
+  width: 100%;
+  height: 4px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 2px;
+  cursor: pointer;
+  position: relative;
+}
+
+.audio-progress {
+  height: 100%;
+  background: var(--white);
+  border-radius: 2px;
+  width: 0%;
+  transition: width 0.1s linear;
+}
+
+.audio-time {
+  font-size: 11px;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+/* Article content */
+.detail-content {
+  padding: 20px 16px 40px;
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.detail-rank-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 4px;
+  color: var(--white);
+  margin-bottom: 12px;
+}
+
+.detail-content h1 {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--gray-dark);
+  margin-bottom: 8px;
+}
+
+.detail-meta {
+  font-size: 13px;
+  color: var(--gray-text);
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--gray-light);
+}
+
+.detail-content h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--green-dark);
+  margin: 24px 0 12px;
+}
+
+.detail-content p {
+  font-size: 15px;
+  line-height: 1.65;
+  color: #333;
+  margin-bottom: 12px;
+}
+
+.detail-content ul {
+  margin: 0 0 16px 0;
+  padding-left: 20px;
+}
+
+.detail-content li {
+  font-size: 15px;
+  line-height: 1.65;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.detail-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 13px;
+  overflow-x: auto;
+  display: block;
+}
+
+.detail-content thead {
+  background: var(--green-dark);
+  color: var(--white);
+}
+
+.detail-content th {
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.detail-content td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--gray-light);
+  white-space: nowrap;
+}
+
+.detail-content tbody tr:nth-child(even) {
+  background: var(--gray-bg);
+}
+
+.detail-content hr {
+  border: none;
+  border-top: 1px solid var(--gray-light);
+  margin: 24px 0;
+}
+
+.detail-content em {
+  font-size: 12px;
+  color: var(--gray-text);
+}
+
+.detail-content strong {
+  color: var(--gray-dark);
+}
+
+/* Not available state */
+.not-available {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 32px;
+  text-align: center;
+}
+
+.not-available-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--gray-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  font-size: 28px;
+}
+
+.not-available h2 {
+  font-size: 18px;
+  color: var(--gray-dark);
+  margin-bottom: 8px;
+}
+
+.not-available p {
+  font-size: 14px;
+  color: var(--gray-text);
+  line-height: 1.5;
+}
+
+/* ===== DESKTOP ===== */
+@media (min-width: 768px) {
+  .feed-list {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 16px 0 40px;
+  }
+
+  .feed-header, .detail-header {
+    padding: 16px 32px;
+  }
+
+  .feed-card {
+    padding: 20px;
+  }
+
+  .feed-card-title { font-size: 16px; }
+
+  .detail-content {
+    padding: 32px 24px 60px;
+  }
+
+  .detail-content h1 { font-size: 26px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== SPLASH ===== -->
+<div id="splash" onclick="enterApp()">
+  <div class="splash-bg"></div>
+  <div class="splash-overlay"></div>
+  <div class="splash-content">
+    <img src="logo_white.png" alt="h2Radnor" class="splash-logo">
+    <div class="splash-tagline">Insights</div>
+    <div class="splash-enter">Tap to enter</div>
+  </div>
+</div>
+
+<!-- ===== FEED ===== -->
+<div id="feed">
+  <div class="feed-header">
+    <img src="logo_black.svg" alt="h2Radnor" class="feed-logo">
+    <span class="feed-header-title">Insights</span>
+  </div>
+  <div class="feed-date">Week of 24 February 2026</div>
+  <div class="feed-list" id="feedList"></div>
+</div>
+
+<!-- ===== DETAIL ===== -->
+<div id="detail">
+  <div class="detail-header">
+    <button class="detail-back" onclick="showFeed()">&#8249;</button>
+    <span class="detail-header-title" id="detailHeaderTitle"></span>
+  </div>
+  <div class="audio-bar hidden" id="audioBar">
+    <button class="audio-play-btn" id="audioPlayBtn" onclick="toggleAudio()">
+      <svg id="playIcon" viewBox="0 0 24 24"><polygon points="6,3 20,12 6,21"/></svg>
+      <svg id="pauseIcon" viewBox="0 0 24 24" style="display:none"><rect x="5" y="3" width="4" height="18"/><rect x="15" y="3" width="4" height="18"/></svg>
+    </button>
+    <div class="audio-info">
+      <div class="audio-label">Listen to article</div>
+      <div class="audio-progress-wrap" id="progressWrap" onclick="seekAudio(event)">
+        <div class="audio-progress" id="audioProgress"></div>
+      </div>
+    </div>
+    <span class="audio-time" id="audioTime">0:00</span>
+  </div>
+  <div class="detail-content" id="detailContent"></div>
+</div>
+
+<audio id="audioPlayer" src="article1.mp3" preload="metadata"></audio>
+
+<script>
+// Article data
+const articles = [
+  {
+    id: 1,
+    rank: 'critical',
+    rankLabel: 'Critical',
+    rankNum: 1,
+    tag: 'Earnings',
+    time: '25 Feb 2026',
+    title: 'Diageo H1 FY26: Interim Results \u2014 Sales Miss, Dividend Shock, CEO Strategy Pending',
+    desc: 'Net sales came in at $10.46 billion, down 4.0% reported and 2.8% organically, driven by volume declines and negative price/mix. The interim dividend was cut to 20 cents from 40.50 cents. New CEO Sir Dave Lewis flags strategic review for summer 2026.',
+    hasAudio: true,
+    available: true
+  },
+  {
+    id: 2,
+    rank: 'critical',
+    rankLabel: 'Critical',
+    rankNum: 2,
+    tag: 'Macro',
+    time: '27 Feb 2026',
+    title: 'Bank of England Holds Rates at 4.25% Amid Persistent Services Inflation',
+    desc: 'The MPC voted 6\u20133 to hold the base rate, citing sticky services inflation at 5.1% and elevated wage growth. Governor Bailey signalled a cautious path lower, noting global trade uncertainty following renewed US tariff threats.',
+    hasAudio: false,
+    available: false
+  },
+  {
+    id: 3,
+    rank: 'high',
+    rankLabel: 'High',
+    rankNum: 3,
+    tag: 'M&A',
+    time: '26 Feb 2026',
+    title: 'Glencore Confirms Approach for Anglo American\u2019s Copper Assets',
+    desc: 'Glencore has made a preliminary approach to acquire Anglo American\u2019s copper division in a deal valued at approximately \u00a318 billion. The move would reshape the global copper market and faces regulatory scrutiny across multiple jurisdictions.',
+    hasAudio: false,
+    available: false
+  },
+  {
+    id: 4,
+    rank: 'high',
+    rankLabel: 'High',
+    rankNum: 4,
+    tag: 'Earnings',
+    time: '26 Feb 2026',
+    title: 'Barclays Q4 Results Beat on Investment Banking Strength',
+    desc: 'Barclays reported pre-tax profit of \u00a31.9bn for Q4, ahead of consensus estimates of \u00a31.6bn. The investment banking division drove the beat with a 23% increase in advisory fees. Management upgraded its 2026 RoTE target to above 12%.',
+    hasAudio: false,
+    available: false
+  },
+  {
+    id: 5,
+    rank: 'medium',
+    rankLabel: 'Medium',
+    rankNum: 5,
+    tag: 'Regulation',
+    time: '25 Feb 2026',
+    title: 'FCA Proposes New Rules for UK-Listed SPACs and Reverse Mergers',
+    desc: 'The Financial Conduct Authority published a consultation paper proposing enhanced disclosure requirements for special purpose acquisition companies and reverse takeover transactions, aiming to improve investor protection while maintaining London\u2019s competitiveness.',
+    hasAudio: false,
+    available: false
+  },
+  {
+    id: 6,
+    rank: 'medium',
+    rankLabel: 'Medium',
+    rankNum: 6,
+    tag: 'Strategy',
+    time: '24 Feb 2026',
+    title: 'Unilever Announces \u20ac3bn Buyback as Ice Cream Separation Completes',
+    desc: 'Unilever confirmed the completion of its ice cream division separation and announced a new \u20ac3 billion share buyback programme funded by disposal proceeds. CEO Hein Schumacher reiterated medium-term organic sales growth guidance of 4\u20136%.',
+    hasAudio: false,
+    available: false
+  },
+  {
+    id: 7,
+    rank: 'standard',
+    rankLabel: 'Standard',
+    rankNum: 7,
+    tag: 'Sector',
+    time: '24 Feb 2026',
+    title: 'FTSE 100 Renewable Energy Stocks Rally on UK Grid Investment Plan',
+    desc: 'Shares in SSE, National Grid and Drax surged after the government confirmed \u00a312 billion in grid infrastructure spending over the next five years. The investment aims to unlock 50GW of offshore wind capacity by 2030.',
+    hasAudio: false,
+    available: false
+  },
+  {
+    id: 8,
+    rank: 'standard',
+    rankLabel: 'Standard',
+    rankNum: 8,
+    tag: 'Commodities',
+    time: '24 Feb 2026',
+    title: 'Brent Crude Drops Below $70 on Demand Concerns and OPEC+ Supply Uncertainty',
+    desc: 'Oil prices fell 3.2% to $69.40 per barrel as weaker-than-expected Chinese manufacturing data compounded concerns about global demand. OPEC+ is expected to discuss extending voluntary production cuts at its March meeting.',
+    hasAudio: false,
+    available: false
+  }
+];
+
+// Diageo article HTML content
+const article1Content = `
+<div class="detail-rank-badge rank-critical">Critical Importance</div>
+<h1>Diageo H1 Fiscal 2026 Interim Results</h1>
+<div class="detail-meta"><strong>Period:</strong> Six months ended 31 December 2025 &nbsp;|&nbsp; <strong>Released:</strong> 25 February 2026 &nbsp;|&nbsp; LSE: DGE &nbsp;|&nbsp; NYSE: DEO</div>
+
+<h2>Key Takeaways</h2>
+<ul>
+<li><strong>Sales declined across the board</strong> \u2014 Net sales came in at $10.46 billion, down 4.0% reported and 2.8% organically, driven by volume declines and negative price/mix. The weakness was primarily caused by soft US Spirits performance and continued pressure in Chinese white spirits (CWS). Excluding CWS, group organic net sales would have been roughly 2% higher.</li>
+<li><strong>Mixed regional performance with clear bright spots</strong> \u2014 Strong performance in Europe, Latin America & Caribbean, and Africa was offset by weakening in North America and continued weakness in Chinese white spirits in Asia Pacific. Guinness was a standout, delivering organic net sales growth of 10.9% with growth in all regions apart from APAC.</li>
+<li><strong>Major asset sale to strengthen the balance sheet</strong> \u2014 Diageo announced an agreement to sell its shareholding in East African Breweries plc (EABL) and its Kenyan spirits business to Asahi Group Holdings for estimated net proceeds of $2.3 billion (implying a 17x EBITDA multiple).</li>
+<li><strong>Dividend slashed significantly with new payout policy</strong> \u2014 The interim dividend was cut to 20 cents per share, down from 40.50 cents in H1 fiscal 25. The Board is now targeting a 30\u201350% payout policy going forward with a minimum floor of 50 cents per annum.</li>
+<li><strong>Cost savings programme accelerating under new leadership</strong> \u2014 Around 50% of Accelerate programme savings are now expected in fiscal 26, driven by supply chain efficiencies, marketing spend optimisation, and overhead reductions.</li>
+</ul>
+
+<hr>
+
+<h2>Financial Snapshot</h2>
+<table>
+<thead><tr><th>Metric</th><th>H1 FY26</th><th>Change vs H1 FY25</th></tr></thead>
+<tbody>
+<tr><td>Net Sales</td><td>$10,460m</td><td>-4.0%</td></tr>
+<tr><td>Organic Net Sales Movement</td><td>$(295)m</td><td>-2.8%</td></tr>
+<tr><td>Operating Profit</td><td>$3,116m</td><td>-1.2%</td></tr>
+<tr><td>Operating Profit (pre-exceptional)</td><td>$3,256m</td><td>-2.8% (organic)</td></tr>
+<tr><td>EPS (pre-exceptional)</td><td>95.3 cents</td><td>-2.5%</td></tr>
+<tr><td>Free Cash Flow</td><td>$1.5bn</td><td>-$164m</td></tr>
+<tr><td>Net Debt</td><td>$21.7bn</td><td>\u2014</td></tr>
+<tr><td>Interim Dividend</td><td>20 cents</td><td>vs 40.50 cents</td></tr>
+</tbody>
+</table>
+
+<hr>
+
+<h2>Consensus vs Actual</h2>
+<table>
+<thead><tr><th>Metric</th><th>Consensus</th><th>Actual</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>Organic net sales growth</td><td>-2.0%</td><td>-2.8%</td><td style="color:var(--red-accent);font-weight:600">Miss</td></tr>
+<tr><td>Organic operating profit growth</td><td>-3.9%</td><td>-2.8%</td><td style="color:var(--green-accent);font-weight:600">Beat</td></tr>
+<tr><td>EPS (pre-exceptional)</td><td>93.1c</td><td>95.3c</td><td style="color:var(--green-accent);font-weight:600">Beat</td></tr>
+<tr><td>Interim dividend</td><td>~40c</td><td>20.0c</td><td style="color:var(--red-accent);font-weight:600">Shock cut</td></tr>
+</tbody>
+</table>
+
+<hr>
+
+<h2>Key Analyst Reactions</h2>
+<p><strong>BofA Securities</strong> (Buy, PT 1,920p): Consensus likely to move lower on sales given revised FY guidance implies organic sales of -1% to -3% in H2, though impact on EBIT and EPS would be modest.</p>
+<p><strong>Jefferies</strong> (Buy, PT 2,000p): Central debate is whether a further profit reset for FY27 could follow once strategic details emerge. Diageo trades at 15.8x CY26E earnings vs staples sector at 19.3x.</p>
+<p><strong>New CEO Sir Dave Lewis</strong> (7 weeks in): Acknowledged the portfolio is strong at the premium end but underrepresented in higher-volume segments. Suggested \u201csurgical\u201d price repositioning by brand, pack size, market, and channel. Full strategic update expected in summer 2026.</p>
+
+<hr>
+
+<h2>Market Reaction</h2>
+<p>Diageo shares fell <strong>~5\u20137%</strong> on the day of results, reflecting the combination of organic sales miss, downgraded FY26 guidance, the dividend cut, and uncertainty around the incoming CEO\u2019s strategic review.</p>
+<p>The EPS beat and maintained free cash flow guidance provided some offset, but were not enough to counteract the negative headlines.</p>
+
+<hr>
+<p><em>Sources: Diageo plc interim results (25 Feb 2026), Diageo Aide M\u00e9moire H1 FY26, Investing.com, Nasdaq/Zacks, BofA Securities, Jefferies.</em></p>
+`;
+
+// ===== App Logic =====
+
+function enterApp() {
+  document.getElementById('splash').classList.add('hidden');
+  setTimeout(() => {
+    document.getElementById('feed').classList.add('active');
+  }, 300);
+}
+
+function renderFeed() {
+  const list = document.getElementById('feedList');
+  list.innerHTML = articles.map(a => `
+    <div class="feed-card" onclick="showDetail(${a.id})">
+      <div class="feed-card-rank rank-${a.rank}">${a.rankNum}</div>
+      <div class="feed-card-body">
+        <div class="feed-card-meta">
+          <span class="feed-card-tag">${a.tag}</span>
+          <span class="feed-card-time">${a.time}</span>
+        </div>
+        <div class="feed-card-title">${a.title}</div>
+        <div class="feed-card-desc">${a.desc}</div>
+        <div class="feed-card-footer">
+          ${a.hasAudio ? `<span class="feed-card-listen" onclick="event.stopPropagation();showDetail(${a.id},true)">
+            <svg viewBox="0 0 24 24"><polygon points="6,3 20,12 6,21"/></svg>
+            Listen
+          </span>` : ''}
+          <span class="feed-card-arrow">\u203A</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function showDetail(id, autoPlay) {
+  const article = articles.find(a => a.id === id);
+  if (!article) return;
+
+  document.getElementById('feed').classList.remove('active');
+  document.getElementById('detail').classList.add('active');
+  document.getElementById('detailHeaderTitle').textContent = article.title;
+
+  const audioBar = document.getElementById('audioBar');
+  const content = document.getElementById('detailContent');
+
+  if (article.available) {
+    content.innerHTML = article1Content;
+    audioBar.classList.remove('hidden');
+    if (autoPlay) {
+      setTimeout(() => toggleAudio(), 300);
+    }
+  } else {
+    audioBar.classList.add('hidden');
+    content.innerHTML = `
+      <div class="not-available">
+        <div class="not-available-icon">\uD83D\uDD12</div>
+        <h2>${article.title}</h2>
+        <p>This article is not available yet.<br>Full analysis will be published shortly.</p>
+      </div>
+    `;
+  }
+
+  window.scrollTo(0, 0);
+}
+
+function showFeed() {
+  stopAudio();
+  document.getElementById('detail').classList.remove('active');
+  document.getElementById('feed').classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+// Audio controls
+const audio = document.getElementById('audioPlayer');
+let isPlaying = false;
+
+function toggleAudio() {
+  if (isPlaying) {
+    audio.pause();
+  } else {
+    audio.play();
+  }
+}
+
+function stopAudio() {
+  audio.pause();
+  audio.currentTime = 0;
+  isPlaying = false;
+  updatePlayIcon();
+}
+
+function updatePlayIcon() {
+  document.getElementById('playIcon').style.display = isPlaying ? 'none' : 'block';
+  document.getElementById('pauseIcon').style.display = isPlaying ? 'block' : 'none';
+}
+
+audio.addEventListener('play', () => { isPlaying = true; updatePlayIcon(); });
+audio.addEventListener('pause', () => { isPlaying = false; updatePlayIcon(); });
+
+audio.addEventListener('timeupdate', () => {
+  if (audio.duration) {
+    const pct = (audio.currentTime / audio.duration) * 100;
+    document.getElementById('audioProgress').style.width = pct + '%';
+    document.getElementById('audioTime').textContent = formatTime(audio.currentTime) + ' / ' + formatTime(audio.duration);
+  }
+});
+
+audio.addEventListener('ended', () => {
+  isPlaying = false;
+  updatePlayIcon();
+  document.getElementById('audioProgress').style.width = '0%';
+});
+
+function seekAudio(e) {
+  const wrap = document.getElementById('progressWrap');
+  const rect = wrap.getBoundingClientRect();
+  const pct = (e.clientX - rect.left) / rect.width;
+  audio.currentTime = pct * audio.duration;
+}
+
+function formatTime(s) {
+  const m = Math.floor(s / 60);
+  const sec = Math.floor(s % 60);
+  return m + ':' + (sec < 10 ? '0' : '') + sec;
+}
+
+// Handle browser back
+window.addEventListener('popstate', () => {
+  if (document.getElementById('detail').classList.contains('active')) {
+    showFeed();
+  }
+});
+
+// Init
+renderFeed();
+</script>
+</body>
+</html>
