@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#213629">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="app_icon.png">
+<link rel="icon" type="image/png" href="app_icon.png">
 <title>h2Radnor Insights</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -882,6 +887,11 @@ window.addEventListener('popstate', () => {
     showFeed();
   }
 });
+
+// Register service worker for PWA
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js');
+}
 
 // Init
 renderFeed();
